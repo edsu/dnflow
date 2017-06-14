@@ -38,24 +38,6 @@ Start the `luigid` central scheduler, best done in another terminal:
 % luigid
 ```
 
-To test the workflow, run the following to kick it off (substituting a
-search term of interest):
-```
-% python -m luigi --module summarize RunFlow --term lahoreblast
-```
-
-It may take a moment to execute the search, which will require repeated
-calls to the Twitter API.  As soon as it completes, you should have all
-the mentioned files in your `data/` directory.  The naming scheme isn't
-well thought out.  This is only a test.
-
-While you're at it, take a look at the web ui for luigi's scheduler at:
-
-    http://localhost:8082/
-
-(Assuming you didn't change the port when you started luigid.)
-
-
 ## adding the flask UI
 
 `ui.py` contains a simple web app that allows a search to be specified
