@@ -665,6 +665,38 @@ class BagIt(EventfulTask):
         z.close()
         os.rename(ziph.name, self.output().path)
 
+class EdgelistRetweets(EventfulTask):
+    search = luigi.DictParameter()
+
+    def requires(self):
+        return FetchTweets(search=self.search)
+
+    def output(self):
+        fname = self.input().fn.replace('tweets.json', 'edgelist-retweets.csv')
+        return luigi.LocalTarget(fname)
+
+    def run(self):
+        output = self.output().open('w')
+        writer = csv.DictWriter(output, delimiter=',',
+                                quoting=csv.QUOTE_MINIMAL,
+                                fieldnames=['from user', 'to user', 'url'])
+        writer.writeheader()
+        for tweet_str in self.input().open('r'):
+            tweet = json.loads(tweet_str)
+            if 'retweeted_status' not in tweet:
+                continue
+
+            from_user = tweet['retweeted_status']['user']['screen_name']
+            to_user = tweet['user']['screen_name']
+            url = "https://twitter.com/%s/status/%s" % (to_user, tweet['id_str'])
+            writer.writerow({
+                'from user': from_user, 
+                'to user': to_user,
+                'url': url
+            })
+
+        output.close()
+
 
 class CountRetweets(EventfulTask):
     search = luigi.DictParameter()
@@ -800,6 +832,7 @@ class RunFlow(EventfulTask):
         yield CountMentions(search=search)
         yield CountFollowers(search=search)
         yield CountRetweets(search=search)
+        yield EdgelistRetweets(search=search)
         yield FollowRatio(search=search)
         yield EdgelistMentions(search=search)
         yield PopulateRedis(search=search)
